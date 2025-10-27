@@ -241,7 +241,12 @@ public abstract class AbstractEvalOpProcessor extends AbstractOpProcessor {
                   graphManager.onQueryError(msg, t);
                 })
                 .beforeEval(b -> {
-                    graphManager.beforeQueryStart(msg);
+                    AuthenticatedUser user = ctx.getChannelHandlerContext().channel().attr(StateKey.AUTHENTICATED_USER).get();
+                    if (null == user) {
+                        // This is expected when using the AllowAllAuthenticator
+                        user = AuthenticatedUser.ANONYMOUS_USER;
+                    }
+                    graphManager.beforeQueryStart(msg, user);
                     try {
                         b.putAll(bindingsSupplier.get());
                     } catch (OpProcessorException ope) {
@@ -268,6 +273,7 @@ public abstract class AbstractEvalOpProcessor extends AbstractOpProcessor {
                         handleIterator(ctx, itty);
                         graphManager.onQuerySuccess(msg);
                     } catch (Exception ex) {
+                        graphManager.onQueryError(msg, ex);
                         if (managedTransactionsForRequest) attemptRollback(msg, ctx.getGraphManager(), settings.strictTransactionManagement);
 
                         CloseableIterator.closeIterator(itty);

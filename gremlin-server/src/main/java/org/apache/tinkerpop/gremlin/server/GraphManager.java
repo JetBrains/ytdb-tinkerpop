@@ -18,6 +18,7 @@
  */
 package org.apache.tinkerpop.gremlin.server;
 
+import org.apache.tinkerpop.gremlin.server.auth.AuthenticatedUser;
 import org.apache.tinkerpop.gremlin.util.message.RequestMessage;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -139,11 +140,24 @@ public interface GraphManager {
     /**
      * This method will be called before a script or query is processed by the
      * gremlin-server.
+     * <p>
+     * This method delegates call to the {@link #beforeQueryStart(RequestMessage)} by default, this functionality
+     * should be preserved by overriding methods if call of the former method is still needed.
      *
-     * @param msg the {@link RequestMessage} received by the gremlin-server.
-     * @param error the exception encountered during processing from the gremlin-server.
+     * @param msg  the {@link RequestMessage} received by the gremlin-server.
+     * @param user User authenticated in channel processing request
      */
-    default void onQueryError(final RequestMessage msg, final Throwable error) {
+    default void beforeQueryStart(final RequestMessage msg, AuthenticatedUser user) {
+        beforeQueryStart(msg);
+    }
+
+    /**
+     * This method will be called if a script or query is processed by the
+     * gremlin-server throws an error.
+     *
+     * @param msg   the {@link RequestMessage} received by the gremlin-server.
+     * @param error the exception encountered during processing from the gremlin-server.
+     */    default void onQueryError(final RequestMessage msg, final Throwable error) {
 
     }
 
