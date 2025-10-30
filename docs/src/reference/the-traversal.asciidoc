@@ -454,8 +454,8 @@ image:side-effect-lambda.png[width=175,float=right]
 [gremlin-groovy,modern]
 ----
 g.V().hasLabel('person').sideEffect(System.out.&println) <1>
-g.V().sideEffect(outE().count().aggregate(local,"o")).
-      sideEffect(inE().count().aggregate(local,"i")).cap("o","i") <2>
+g.V().sideEffect(outE().count().local(aggregate("o"))).
+      sideEffect(inE().count().local(aggregate("i"))).cap("o","i") <2>
 ----
 
 <1> Whatever enters `sideEffect()` is passed to the next step, but some intervening process can occur.
@@ -553,6 +553,7 @@ vMarko = g.V().has('name','marko').next()
 vPeter = g.V().has('name','peter').next()
 g.V(vMarko).addE('knows').to(vPeter) <6>
 g.addE('knows').from(vMarko).to(vPeter) <7>
+g.addE('knows').from(__.V(1)).to(__.constant(6)) <8>
 ----
 
 <1> Add a co-developer edge with a year-property between marko and his collaborators.
@@ -563,6 +564,7 @@ g.addE('knows').from(vMarko).to(vPeter) <7>
 supports user provided ids.
 <6> Add an edge between marko and peter given the directed (detached) vertex references.
 <7> Add an edge between marko and peter given the directed (detached) vertex references.
+<8> Use child traversals producing either a vertex, or vertex id to add an edge between marko and peter.
 
 *Additional References*
 
@@ -596,26 +598,22 @@ link:++https://tinkerpop.apache.org/javadocs/x.y.z/core/org/apache/tinkerpop/gre
 image::aggregate-step.png[width=800]
 
 The `aggregate()`-step (*sideEffect*) is used to aggregate all the objects at a particular point of traversal into a
-`Collection`. The step is uses `Scope` to help determine the aggregating behavior. For `global` scope this means that
-the step will use link:http://en.wikipedia.org/wiki/Eager_evaluation[eager evaluation] in that no objects continue on
-until all previous objects have been fully aggregated. The eager evaluation model is crucial in situations
-where everything at a particular point is required for future computation. By default, when the overload of
-`aggregate()` is called without a `Scope`, the default is `global`. An example is provided below.
+`Collection`. By default, the step will use link:http://en.wikipedia.org/wiki/Eager_evaluation[eager evaluation] in that
+no objects continue on until all previous objects have been fully aggregated. The eager evaluation model is crucial in situations
+where everything at a particular point is required for future computation.
 
 [gremlin-groovy,modern]
 ----
 g.V(1).out('created') <1>
 g.V(1).out('created').aggregate('x') <2>
-g.V(1).out('created').aggregate(global, 'x') <3>
-g.V(1).out('created').aggregate('x').in('created') <4>
-g.V(1).out('created').aggregate('x').in('created').out('created') <5>
+g.V(1).out('created').aggregate('x').in('created') <3>
+g.V(1).out('created').aggregate('x').in('created').out('created') <4>
 g.V(1).out('created').aggregate('x').in('created').out('created').
-       where(without('x')).values('name') <6>
+       where(without('x')).values('name') <5>
 ----
 
 <1> What has marko created?
 <2> Aggregate all his creations.
-<3> Identical to the previous line.
 <3> Who are marko's collaborators?
 <4> What have marko's collaborators created?
 <5> What have marko's collaborators created that he hasn't created?
@@ -635,31 +633,23 @@ g.V().out('knows').aggregate('x').by('age').cap('x')  <1>
 
 <1> The "age" property is not <<by-step,productive>> for all vertices and therefore those values are not included in the aggregation.
 
-For `local` scope the aggregation will occur in a link:http://en.wikipedia.org/wiki/Lazy_evaluation[lazy] fashion.
-
-NOTE: Prior to 3.4.3, `local` aggregation (i.e. lazy) evaluation was handled by `store()`-step.
-
-[gremlin-groovy,modern]
-----
-g.V().aggregate(global, 'x').limit(1).cap('x')
-g.V().aggregate(local, 'x').limit(1).cap('x')
-g.withoutStrategies(EarlyLimitStrategy).V().aggregate(local,'x').limit(1).cap('x')
-----
-
-It is important to note that `EarlyLimitStrategy` introduced in 3.3.5 alters the behavior of `aggregate(local)`.
-Without that strategy (which is installed by default), there are two results in the `aggregate()` side-effect even
-though the interval selection is for 1 object. Realize that when the second object is on its way to the `range()`
-filter (i.e. `[0..1]`), it passes through `aggregate()` and thus, stored before filtered.
+Aggregation can be controlled to occur in a link:http://en.wikipedia.org/wiki/Lazy_evaluation[lazy] fashion by using
+the step inside `local()`.
 
 [gremlin-groovy,modern]
 ----
-g.E().aggregate(local,'x').by('weight').cap('x')
+g.V().aggregate('x').limit(1).cap('x')
+g.V().local(aggregate('x')).limit(1).cap('x')
+----
+
+[gremlin-groovy,modern]
+----
+g.E().local(aggregate('x')).by('weight').cap('x')
 ----
 
 *Additional References*
 
 link:++https://tinkerpop.apache.org/javadocs/x.y.z/core/org/apache/tinkerpop/gremlin/process/traversal/dsl/graph/GraphTraversal.html#aggregate(java.lang.String)++[`aggregate(String)`],
-link:++https://tinkerpop.apache.org/javadocs/x.y.z/core/org/apache/tinkerpop/gremlin/process/traversal/dsl/graph/GraphTraversal.html#aggregate(org.apache.tinkerpop.gremlin.process.traversal.Scope,java.lang.String)++[`aggregate(Scope,String)`]
 
 [[all-step]]
 === All Step
@@ -2553,29 +2543,14 @@ in an object-local traversal. As such, the `order().by()` and the `limit()` refe
 stream as a whole.
 
 Local Step is quite similar in functionality to <<general-steps,Flat Map Step>> where it can often be confused.
-`local()` propagates the traverser through the internal traversal as is without splitting/cloning it. Thus, its
-a “global traversal” with local processing. Its use is subtle and primarily finds application in compilation
-optimizations (i.e. when writing `TraversalStrategy` implementations. As another example consider:
+The primary distinction between these steps is that while `local()` preserves the path history of traversers as they
+pass through its child traversal, `flatMap()` does not. As another example consider:
 
 [gremlin-groovy,modern]
 ----
-g.V().both().barrier().flatMap(groupCount().by("name"))
-g.V().both().barrier().local(groupCount().by("name"))
+g.V().local(outE().inV()).path()
+g.V().flatMap(outE().inV()).path()
 ----
-
-Use of `local()` is often a mistake. This is especially true when its argument contains a reducing step. For example,
-let's say the requirement was to count the number of properties per `Vertex` in:
-
-[gremlin-groovy,modern]
-----
-g.V().both().local(properties('name','age').count())  <1>
-g.V().both().map(properties('name','age').count()) <2>
-----
-
-<1> The output here seems impossible because no single vertex in the "modern" graph can have more than two properties
-given the "name" and "age" filters, but because the counting is happening object-local the counting is occurring unique
-to each object rather than each global traverser.
-<2> Replacing `local()` with `map()` returns the result desired by the requirement.
 
 WARNING: The anonymous traversal of `local()` processes the current object "locally." In OLAP, where the atomic unit
 of computing is the vertex and its local "star graph," it is important that the anonymous traversal does not leave
@@ -4071,8 +4046,11 @@ g.V().until(has('name','ripple')).
 <1> do-while semantics stating to do `out()` 2 times.
 <2> while-do semantics stating to break if the traverser is at a vertex named "ripple".
 
-[gremlin-groovy,grateful-dead]
+[gremlin-groovy]
 ----
+graph = TinkerGraph.open()
+g = traversal().with(graph)
+g.io('data/grateful-dead.xml').read().iterate()
 g.V().has('name','JAM').repeat(out('followedBy').limit(2)).times(3) <1>
 g.V().has('name','DRUMS').repeat(__.in('followedBy').range(1,3)).until(loops().is(2)) <2>
 g.V().has('name','HEY BO DIDDLEY').repeat(out('followedBy').skip(5)).times(2) <3>
@@ -5039,20 +5017,19 @@ g.V().has('name','josh').out('created').values('name').
 <1> When the `tree()` is created, vertex 3 and 5 are unique and thus, form unique branches in the tree structure.
 <2> When the `tree()` is `by()`-modulated by `label`, then vertex 3 and 5 are both "software" and thus are merged to a single node in the tree.
 
-The `tree()` step can also take a side-effect key as an argument. When using this form, the `Tree` is constructed
-lazily, such that it becomes possible to assess its contents as each traverser passes through.
+The `tree()` step can also take a side-effect key as an argument. When using this form, the `Tree` is is built up in a
+side-effect as each traverser passes through. The `Tree` can later be accessed by either `select()` or `cap()`.
 
 [gremlin-groovy,modern]
 ----
 g.V().has('name','josh').out('created').values('name').tree('x').select('x')
 ----
 
-You can use `cap()` step to force `tree()` to consume the traversal stream eagerly and output results similar to prior
-examples.
+It is possible to force lazy construction of the tree by embedding inside a `local()` step.
 
 [gremlin-groovy,modern]
 ----
-g.V().has('name','josh').out('created').values('name').tree('x').cap('x')
+g.V().has('name','josh').out('created').values('name').local(tree('x')).select('x')
 ----
 
 *Additional References*
@@ -5609,7 +5586,7 @@ By default, `GType` enumerations are registered using their simple class names a
 
 [gremlin-groovy,modern]
 ----
-gremlin> g.V().values('age','name').is(P.typeOf('Integer'))
+g.V().values('age','name').is(P.typeOf('Integer'))
 ----
 
 [[a-note-on-maps]]

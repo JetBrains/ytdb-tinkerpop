@@ -305,6 +305,31 @@ public abstract class TinkerWorld implements World {
         }
 
         @Override
+        public void beforeEachScenario(Scenario scenario) {
+            this.world.beforeEachScenario(scenario);
+
+            switch (scenario.getName()) {
+                // TINKERPOP-3208
+                case "g_V_repeatXunionXoutXknowsX_order_byXnameX_inXcreatedX_order_byXnameXXX_timesX1X":
+                case "g_V_repeatXboth_repeatXorder_byXnameXX_timesX1XX_timesX1X":
+                case "g_V_order_byXname_descX_repeatXboth_simplePath_order_byXname_descXX_timesX2X_path":
+                case "g_VX3X_repeatXoutE_order_byXweightX_tailX2X_inVX_timesX2X_valuesXnameX":
+                case "g_VX3X_repeatXout_order_byXperformances_descX_limitX5X_tailX1XX_timesX2X_valuesXnameX":
+                case "g_VX3X_repeatXout_order_byXperformancesX_tailX3X_limitX1XX_timesX2X_valuesXnameX":
+                case "g_VX250X_repeatXout_localXorder_byXperformancesX_tailX1XXX_timesX2X_valuesXnameX":
+                case "g_VX3X_repeatXout_order_byXperformancesX_tailX2XX_timesX2X_valuesXnameX":
+                    throw new AssumptionViolatedException("GraphComputer doesn't order within repeat");
+                // TINKERPOP-3209
+                case "g_V_localXgroupCountXaX_selectXaX_countXlocalXX":
+                case "g_V_localXgroupXaX_byXnameX_by_selectXaX_countXlocalXX":
+                case "g_V_out_order_byXnameX_localXtreeXaX_selectXaX_countXlocalXX":
+                    throw new AssumptionViolatedException("Selecting side effects inside local() produces inconsistent results in OLAP (See TINKERPOP-3209)");
+                default:
+                    // Do nothing
+            }
+        }
+
+        @Override
         public void afterEachScenario() {
             this.world.afterEachScenario();
         }

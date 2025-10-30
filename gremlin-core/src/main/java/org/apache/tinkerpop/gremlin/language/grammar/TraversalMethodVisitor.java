@@ -197,16 +197,6 @@ public class TraversalMethodVisitor extends TraversalRootVisitor<GraphTraversal>
      * {@inheritDoc}
      */
     @Override
-    public GraphTraversal visitTraversalMethod_aggregate_Scope_String(final GremlinParser.TraversalMethod_aggregate_Scope_StringContext ctx) {
-        return graphTraversal.aggregate(
-                TraversalEnumParser.parseTraversalEnumFromContext(Scope.class, ctx.traversalScope()),
-                antlr.genericVisitor.parseString(ctx.stringLiteral()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public GraphTraversal visitTraversalMethod_all_P(final GremlinParser.TraversalMethod_all_PContext ctx) {
         return graphTraversal.all(antlr.traversalPredicateVisitor.visitTraversalPredicate(ctx.traversalPredicate()));
     }
@@ -1624,14 +1614,6 @@ public class TraversalMethodVisitor extends TraversalRootVisitor<GraphTraversal>
      * {@inheritDoc}
      */
     @Override
-    public GraphTraversal visitTraversalMethod_store(final GremlinParser.TraversalMethod_storeContext ctx) {
-        return graphTraversal.store(antlr.genericVisitor.parseString(ctx.stringLiteral()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public GraphTraversal visitTraversalMethod_subgraph(final GremlinParser.TraversalMethod_subgraphContext ctx) {
         return graphTraversal.subgraph(antlr.genericVisitor.parseString(ctx.stringLiteral()));
     }
@@ -1881,22 +1863,6 @@ public class TraversalMethodVisitor extends TraversalRootVisitor<GraphTraversal>
     public Traversal visitTraversalMethod_option_Predicate_Traversal(final GremlinParser.TraversalMethod_option_Predicate_TraversalContext ctx) {
         return graphTraversal.option(antlr.traversalPredicateVisitor.visitTraversalPredicate(ctx.traversalPredicate()),
                 antlr.tvisitor.visitNestedTraversal(ctx.nestedTraversal()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public GraphTraversal visitTraversalMethod_from_GenricArgument(final GremlinParser.TraversalMethod_from_GenricArgumentContext ctx) {
-        return graphTraversal.from(antlr.argumentVisitor.visitGenericArgument(ctx.genericArgument()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Traversal visitTraversalMethod_to_GenricArgument(final GremlinParser.TraversalMethod_to_GenricArgumentContext ctx) {
-        return graphTraversal.to(antlr.argumentVisitor.visitGenericArgument(ctx.genericArgument()));
     }
 
     /**

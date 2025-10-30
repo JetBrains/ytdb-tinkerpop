@@ -365,3 +365,46 @@ Feature: Step - group()
       | l[software,software] |
       | l[] |
       | l[software] |
+
+  Scenario: g_V_groupXaX_byXnameX_by_selectXaX_countXlocalX
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().group("a").by("name").by().select("a").count(local)
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | d[6].l |
+      | d[6].l |
+      | d[6].l |
+      | d[6].l |
+      | d[6].l |
+      | d[6].l |
+
+  Scenario: g_V_localXgroupXaX_byXnameX_by_selectXaX_countXlocalXX
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().local(group("a").by("name").by().select("a").count(local))
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | d[1].l |
+      | d[2].l |
+      | d[3].l |
+      | d[4].l |
+      | d[5].l |
+      | d[6].l |
+
+  Scenario: g_V_group_byXvaluesXnameXX_byXboth_countX
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().group().by(values('name')).by(both().count())
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | m[{"marko":"d[3].l", "vadas":"d[1].l", "lop":"d[3].l", "josh":"d[3].l", "ripple":"d[1].l", "peter":"d[1].l"}] |

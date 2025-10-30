@@ -270,7 +270,6 @@ traversalMethod
     | traversalMethod_sideEffect
     | traversalMethod_simplePath
     | traversalMethod_skip
-    | traversalMethod_store
     | traversalMethod_subgraph
     | traversalMethod_sum
     | traversalMethod_tail
@@ -332,8 +331,7 @@ traversalMethod_addV
     ;
 
 traversalMethod_aggregate
-    : K_AGGREGATE LPAREN traversalScope COMMA stringLiteral RPAREN #traversalMethod_aggregate_Scope_String
-    | K_AGGREGATE LPAREN stringLiteral RPAREN #traversalMethod_aggregate_String
+    : K_AGGREGATE LPAREN stringLiteral RPAREN #traversalMethod_aggregate_String
     ;
 
 traversalMethod_all
@@ -532,7 +530,6 @@ traversalMethod_format
 
 traversalMethod_from
     : K_FROM LPAREN stringLiteral RPAREN #traversalMethod_from_String
-    | K_FROM LPAREN genericArgument RPAREN #traversalMethod_from_GenricArgument
     | K_FROM LPAREN nestedTraversal RPAREN #traversalMethod_from_Traversal
     ;
 
@@ -849,10 +846,6 @@ traversalMethod_split
     | K_SPLIT LPAREN traversalScope COMMA stringNullableLiteral RPAREN #traversalMethod_split_Scope_String
     ;
 
-traversalMethod_store
-    : K_STORE LPAREN stringLiteral RPAREN
-    ;
-
 traversalMethod_subgraph
     : K_SUBGRAPH LPAREN stringLiteral RPAREN
     ;
@@ -887,7 +880,6 @@ traversalMethod_times
 traversalMethod_to
     : K_TO LPAREN traversalDirection (COMMA stringNullableArgumentVarargs)? RPAREN #traversalMethod_to_Direction_String
     | K_TO LPAREN stringLiteral RPAREN #traversalMethod_to_String
-    | K_TO LPAREN genericArgument RPAREN #traversalMethod_to_GenricArgument
     | K_TO LPAREN nestedTraversal RPAREN #traversalMethod_to_Traversal
     ;
 
@@ -1980,7 +1972,6 @@ keyword
     | K_SKIP
     | K_SPLIT
     | K_STARTINGWITH
-    | K_STORE
     | K_STRING
     | K_STRINGU
     | K_SUBGRAPH
@@ -2291,7 +2282,6 @@ K_SINGLE: 'single';
 K_SKIP: 'skip';
 K_SPLIT: 'split';
 K_STARTINGWITH: 'startingWith';
-K_STORE: 'store';
 K_STRING: 'string';
 K_STRINGU: 'STRING';
 K_SUBGRAPH: 'subgraph';

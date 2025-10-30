@@ -387,7 +387,7 @@ Feature: Step - repeat()
     When iterated to list
     Then the traversal will raise an error with message containing text of "The repeat()-traversal was not defined"
 
-  Scenario: g_V_haxXperson_name_markoX_repeatXoutXcreatedXX_timesX1X_name
+  Scenario: g_V_hasXperson_name_markoX_repeatXoutXcreatedXX_timesX1X_name
     Given the modern graph
     And the traversal of
       """
@@ -398,7 +398,7 @@ Feature: Step - repeat()
       | result |
       | lop |
 
-  Scenario: g_V_haxXperson_name_markoX_repeatXoutXcreatedXX_timesX0X_name
+  Scenario: g_V_hasXperson_name_markoX_repeatXoutXcreatedXX_timesX0X_name
     Given the modern graph
     And the traversal of
       """
@@ -409,7 +409,7 @@ Feature: Step - repeat()
       | result |
       | lop |
 
-  Scenario: g_V_haxXperson_name_markoX_timesX1X_repeatXoutXcreatedXX_name
+  Scenario: g_V_hasXperson_name_markoX_timesX1X_repeatXoutXcreatedXX_name
     Given the modern graph
     And the traversal of
       """
@@ -420,7 +420,7 @@ Feature: Step - repeat()
       | result |
       | lop |
 
-  Scenario: g_V_haxXperson_name_markoX_timesX0X_repeatXoutXcreatedXX_name
+  Scenario: g_V_hasXperson_name_markoX_timesX0X_repeatXoutXcreatedXX_name
     Given the modern graph
     And the traversal of
       """
@@ -430,3 +430,390 @@ Feature: Step - repeat()
     Then the result should be unordered
       | result |
       | marko |
+
+  # Proper handling of empty results if repeat doesn't output traversers
+  Scenario: g_V_repeatXboth_hasXnot_productiveXX_timesX3X_constantX1X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().repeat(__.both().has("not", "productive")).times(3).constant(1)
+      """
+    When iterated to list
+    Then the result should be empty
+
+  # Proper handling of empty results if no traverser goes into repeat
+  Scenario: g_V_hasXnot_productiveX_repeatXbothX_timesX3X_constantX1X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().has("not", "productive").repeat(__.both()).times(3).constant(1)
+      """
+    When iterated to list
+    Then the result should be empty
+
+  # Each iteration of repeat traversal that ends in a barrier leads to BFS style processing
+  @InsertionOrderingRequired
+  Scenario: g_VX1_2_3X_repeatXboth_barrierX_emit_timesX2X_path
+    Given the modern graph
+    And using the parameter vid1 defined as "v[marko].id"
+    And using the parameter vid2 defined as "v[vadas].id"
+    And using the parameter vid3 defined as "v[lop].id"
+    And the traversal of
+      """
+      g.V(vid1, vid2, vid3).repeat(__.both().barrier()).emit().times(2).path()
+      """
+    When iterated to list
+    Then the result should be ordered
+      | result |
+      | p[v[marko],v[lop]] |
+      | p[v[marko],v[vadas]] |
+      | p[v[marko],v[josh]] |
+      | p[v[vadas],v[marko]] |
+      | p[v[lop],v[marko]] |
+      | p[v[lop],v[josh]] |
+      | p[v[lop],v[peter]] |
+      | p[v[marko],v[lop],v[marko]] |
+      | p[v[marko],v[lop],v[josh]] |
+      | p[v[marko],v[lop],v[peter]] |
+      | p[v[marko],v[vadas],v[marko]] |
+      | p[v[marko],v[josh],v[ripple]] |
+      | p[v[marko],v[josh],v[lop]] |
+      | p[v[marko],v[josh],v[marko]] |
+      | p[v[vadas],v[marko],v[lop]] |
+      | p[v[vadas],v[marko],v[vadas]] |
+      | p[v[vadas],v[marko],v[josh]] |
+      | p[v[lop],v[marko],v[lop]] |
+      | p[v[lop],v[marko],v[vadas]] |
+      | p[v[lop],v[marko],v[josh]] |
+      | p[v[lop],v[josh],v[ripple]] |
+      | p[v[lop],v[josh],v[lop]] |
+      | p[v[lop],v[josh],v[marko]] |
+      | p[v[lop],v[peter],v[lop]] |
+
+  # Global children should be ordered by last loop first
+  Scenario: g_V_order_byXname_descX_repeatXboth_simplePath_order_byXname_descXX_timesX2X_path
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().order().by("name", Order.desc).repeat(__.both().simplePath().order().by("name", Order.desc)).times(2).path()
+      """
+    When iterated to list
+    Then the result should be ordered
+      | result |
+      | p[v[lop],v[marko],v[vadas]] |
+      | p[v[josh],v[marko],v[vadas]] |
+      | p[v[marko],v[josh],v[ripple]] |
+      | p[v[lop],v[josh],v[ripple]] |
+      | p[v[marko],v[lop],v[peter]] |
+      | p[v[josh],v[lop],v[peter]] |
+      | p[v[peter],v[lop],v[marko]] |
+      | p[v[josh],v[lop],v[marko]] |
+      | p[v[ripple],v[josh],v[marko]] |
+      | p[v[lop],v[josh],v[marko]] |
+      | p[v[vadas],v[marko],v[lop]] |
+      | p[v[josh],v[marko],v[lop]] |
+      | p[v[ripple],v[josh],v[lop]] |
+      | p[v[marko],v[josh],v[lop]] |
+      | p[v[vadas],v[marko],v[josh]] |
+      | p[v[lop],v[marko],v[josh]] |
+      | p[v[peter],v[lop],v[josh]] |
+      | p[v[marko],v[lop],v[josh]] |
+
+  # Nested repeat should maintain globalness
+  Scenario: g_V_repeatXboth_repeatXorder_byXnameXX_timesX1XX_timesX1X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().repeat(__.both().repeat(__.order().by("name")).times(1)).times(1)
+      """
+    When iterated to list
+    Then the result should be ordered
+      | result |
+      | v[josh] |
+      | v[josh] |
+      | v[josh] |
+      | v[lop] |
+      | v[lop] |
+      | v[lop] |
+      | v[marko] |
+      | v[marko] |
+      | v[marko] |
+      | v[peter] |
+      | v[ripple] |
+      | v[vadas] |
+
+  # Nested local inside repeat should prevent global children from parent repeat
+  @GraphComputerVerificationStarGraphExceeded
+  Scenario: g_V_order_byXname_descX_repeatXlocalXout_order_byXnameXXX_timesX1X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().order().by("name", Order.desc).repeat(__.local(__.out().order().by("name"))).times(1)
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | v[lop] |
+      | v[josh] |
+      | v[lop] |
+      | v[vadas] |
+      | v[lop] |
+      | v[ripple] |
+
+  # Local child traversal should be applied per loop
+  @GraphComputerVerificationStarGraphExceeded
+  Scenario: g_V_order_byXnameX_repeatXlocalXboth_simplePath_order_byXnameXXX_timesX2X_path
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().order().by("name").repeat(__.local(__.both().simplePath().order().by("name"))).times(2).path()
+      """
+    When iterated to list
+    Then the result should be ordered
+    | result |
+    | p[v[josh],v[lop],v[marko]] |
+    | p[v[josh],v[lop],v[peter]] |
+    | p[v[josh],v[marko],v[lop]] |
+    | p[v[josh],v[marko],v[vadas]] |
+    | p[v[lop],v[josh],v[marko]] |
+    | p[v[lop],v[josh],v[ripple]] |
+    | p[v[lop],v[marko],v[josh]] |
+    | p[v[lop],v[marko],v[vadas]] |
+    | p[v[marko],v[josh],v[lop]] |
+    | p[v[marko],v[josh],v[ripple]] |
+    | p[v[marko],v[lop],v[josh]] |
+    | p[v[marko],v[lop],v[peter]] |
+    | p[v[peter],v[lop],v[josh]] |
+    | p[v[peter],v[lop],v[marko]] |
+    | p[v[ripple],v[josh],v[lop]] |
+    | p[v[ripple],v[josh],v[marko]] |
+    | p[v[vadas],v[marko],v[josh]] |
+    | p[v[vadas],v[marko],v[lop]] |
+
+  # Branching step with global children should remain global in repeat traversal
+  # Results are unordered due to server bulking of traversers which leads to incorrect result
+  Scenario: g_V_repeatXunionXoutXknowsX_order_byXnameX_inXcreatedX_order_byXnameXXX_timesX1X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().repeat(__.union(__.out("knows").order().by("name"), __.in("created").order().by("name"))).times(1)
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | v[josh] |
+      | v[vadas] |
+      | v[josh] |
+      | v[josh] |
+      | v[marko] |
+      | v[peter] |
+
+  # addV inside repeat should create the proper number of vertices
+  Scenario: g_V_repeatXaddV_propertyXgenerated_trueXX_timesX2X
+    Given the empty graph
+    And the graph initializer of
+      """
+      g.addV().property("notGenerated", "true").addV().property("notGenerated", "true")
+      """
+    And the traversal of
+      """
+      g.V().repeat(__.addV().property("generated", "true")).times(2)
+      """
+    When iterated to list
+    Then the result should have a count of 2
+    And the graph should return 2 for count of "g.V().has(\"notGenerated\")"
+    And the graph should return 4 for count of "g.V().has(\"generated\")"
+
+  # global dedup should remove all traversers if looped more than once with all possible vertices
+  Scenario: g_V_repeatXdedup_bothX_timesX2X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().repeat(__.dedup().both()).times(2)
+      """
+    When iterated to list
+    Then the result should be empty
+
+  # global, eager aggregate should contain all results even in the first select
+  Scenario: g_V_repeatXaggregateXxXX_timesX2X_selectXxX_limitX1X_unfold
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().repeat(__.aggregate("x")).times(2).select("x").limit(1).unfold()
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | v[marko] |
+      | v[marko] |
+      | v[josh] |
+      | v[josh] |
+      | v[peter] |
+      | v[peter] |
+      | v[ripple] |
+      | v[ripple] |
+      | v[lop] |
+      | v[lop] |
+      | v[vadas] |
+      | v[vadas] |
+
+  Scenario: g_V_valuesXstrX_repeatXsplitXabcX_conjoinX_timesX2X
+    Given the empty graph
+    And the graph initializer of
+      """
+      g.addV().property("str", "ababcczababcc").addV().property("str", "abcyabc")
+      """
+    And the traversal of
+      """
+      g.V().values("str").repeat(__.split("abc").conjoin("")).times(2)
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | z |
+      | y |
+
+  Scenario: g_withSackX0X_V_repeatXsackXsumX_byXageX_whereXsack_isXltX59XXXX_timesX2X
+    Given the modern graph
+    And the traversal of
+      """
+      g.withSack(0L).V().repeat(__.sack(Operator.sum).by("age").where(__.sack().is(P.lt(59)))).times(2)
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | v[marko] |
+      | v[vadas] |
+
+  @GraphComputerVerificationInjectionNotSupported
+  Scenario: g_V_repeatXinjectXyXX_timesX2X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().repeat(inject('y')).times(2)
+      """
+    When iterated to list
+    Then the traversal will raise an error with message containing text of "The parent of inject()-step can not be repeat()-step"
+    
+  Scenario: g_V_repeatXunionXconstantXyX_limitX1X_identityXX_timesX3X
+    Given the modern graph
+    And the traversal of
+      """
+      g.V().repeat(union(constant('y').limit(1),identity())).times(2)
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | y |
+      | y |
+      | v[marko] |
+      | v[vadas] |
+      | v[lop] |
+      | v[josh] |
+      | v[ripple] |
+      | v[peter] |
+
+  # Test tail works in repeat with a single loop
+  Scenario: g_VX3X_repeatXout_order_byXperformancesX_tailX2XX_timesX1X_valuesXnameX
+    Given the grateful graph
+    And using the parameter vid3 defined as "v[NOT FADE AWAY].id"
+    And the traversal of
+      """
+      g.V(vid3).repeat(__.out().order().by("performances").tail(2)).times(1).values("name")
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | ME AND MY UNCLE |
+      | DRUMS |
+
+  # Test tail runs per iteration in repeat with multiple iterations
+  Scenario: g_VX3X_repeatXout_order_byXperformancesX_tailX2XX_timesX2X_valuesXnameX
+    Given the grateful graph
+    And using the parameter vid3 defined as "v[NOT FADE AWAY].id"
+    And the traversal of
+      """
+      g.V(vid3).repeat(__.out().order().by("performances").tail(2)).times(2).values("name")
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | THE OTHER ONE |
+      | SUGAR MAGNOLIA |
+
+  # Test object-local tail works in repeat with a single loop
+  Scenario: g_VX2X_repeatXout_localXorder_byXperformancesX_tailX1XXX_timesX1X_valuesXnameX
+    Given the grateful graph
+    And using the parameter vid2 defined as "v[IM A MAN].id"
+    And the traversal of
+      """
+      g.V(vid2).repeat(__.out().local(__.order().by("performances").tail(1))).times(1).values("name")
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | JAM |
+      | JACK STRAW |
+
+  # Test object-local tail runs per iteration in repeat with multiple iterations
+  Scenario: g_VX250X_repeatXout_localXorder_byXperformancesX_tailX1XXX_timesX2X_valuesXnameX
+    Given the grateful graph
+    And using the parameter vid250 defined as "v[SIMPLE TWIST OF FATE].id"
+    And the traversal of
+      """
+      g.V(vid250).repeat(__.out().local(__.order().by("performances").tail(1))).times(2).values("name")
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | STUCK INSIDE OF MOBILE |
+      | STUCK INSIDE OF MOBILE |
+      | WICKED MESSENGER |
+      | TANGLED UP IN BLUE |
+      | SHELTER FROM THE STORM |
+      | RAINY DAY WOMAN |
+      | CUMBERLAND BLUES |
+      | WHEN PUSH COMES TO SHOVE |
+      | JOHN BROWN |
+      | SIMPLE TWIST OF FATE |
+      | BABY BLUE |
+
+  # Test tail inside repeat can be followed by other range-based steps
+  Scenario: g_VX3X_repeatXout_order_byXperformancesX_tailX3X_limitX1XX_timesX2X_valuesXnameX
+    Given the grateful graph
+    And using the parameter vid3 defined as "v[NOT FADE AWAY].id"
+    And the traversal of
+      """
+      g.V(vid3).repeat(__.out().order().by("performances").tail(3).limit(1)).times(2).values("name")
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | THE OTHER ONE |
+
+  # Test tail inside repeat can be preceded by other range-based steps
+  Scenario: g_VX3X_repeatXout_order_byXperformances_descX_limitX5X_tailX1XX_timesX2X_valuesXnameX
+    Given the grateful graph
+    And using the parameter vid3 defined as "v[NOT FADE AWAY].id"
+    And the traversal of
+      """
+      g.V(vid3).repeat(__.out().order().by("performances", Order.desc).limit(5).tail(1)).times(2).values("name")
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | CHINA CAT SUNFLOWER |
+
+  # Test order on edge weight with tail in repeat leads to ordered walk
+  Scenario: g_VX3X_repeatXoutE_order_byXweightX_tailX2X_inVX_timesX2X_valuesXnameX
+    Given the grateful graph
+    And using the parameter vid3 defined as "v[NOT FADE AWAY].id"
+    And the traversal of
+      """
+      g.V(vid3).repeat(__.outE().order().by("weight").tail(2).inV()).times(2).values("name")
+      """
+    When iterated to list
+    Then the result should be unordered
+      | result |
+      | SUGAR MAGNOLIA |
+      | AROUND AND AROUND |

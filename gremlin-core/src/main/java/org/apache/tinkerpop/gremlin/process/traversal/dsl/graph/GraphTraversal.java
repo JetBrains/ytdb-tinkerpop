@@ -186,7 +186,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.step.map.TrimGlobalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.TrimLocalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.UnfoldStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.VertexStep;
-import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.AggregateGlobalStep;
+import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.AggregateStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.FailStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.GroupCountSideEffectStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.GroupSideEffectStep;
@@ -198,7 +198,6 @@ import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.ProfileSid
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.SackValueStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.SideEffectCapStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.StartStep;
-import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.AggregateLocalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.SubgraphStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.TraversalSideEffectStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.TreeSideEffectStep;
@@ -1604,14 +1603,14 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
      * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#addedge-step" target="_blank">Reference Documentation - From Step</a>
      * @since 3.8.0
      */
-    public default GraphTraversal<S, E> from(final GValue<Vertex> fromVertex) {
+    public default GraphTraversal<S, E> from(final GValue<?> fromVertex) {
         final Step<?,?> prev = this.asAdmin().getEndStep();
         if (!(prev instanceof FromToModulating))
             throw new IllegalArgumentException(String.format(
                     "The from() step cannot follow %s", prev.getClass().getSimpleName()));
 
         this.asAdmin().getBytecode().addStep(Symbols.from, fromVertex);
-        ((FromToModulating) prev).addFrom(new GValueConstantTraversal<S, Vertex>(fromVertex));
+        ((FromToModulating) prev).addFrom(new GValueConstantTraversal<>(fromVertex));
         return this;
     }
 
@@ -1663,14 +1662,14 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
      * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#addedge-step" target="_blank">Reference Documentation - From Step</a>
      * @since 3.8.0
      */
-    public default GraphTraversal<S, E> to(final GValue<Vertex> toVertex) {
+    public default GraphTraversal<S, E> to(final GValue<?> toVertex) {
         final Step<?,?> prev = this.asAdmin().getEndStep();
         if (!(prev instanceof FromToModulating))
             throw new IllegalArgumentException(String.format(
                     "The to() step cannot follow %s", prev.getClass().getSimpleName()));
 
         this.asAdmin().getBytecode().addStep(Symbols.to, toVertex);
-        ((FromToModulating) prev).addTo(new GValueConstantTraversal<S, Vertex>(toVertex));
+        ((FromToModulating) prev).addTo(new GValueConstantTraversal<>(toVertex));
         return this;
     }
 
@@ -1683,7 +1682,7 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
      * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#addedge-step" target="_blank">Reference Documentation - From Step</a>
      * @since 3.1.0-incubating
      */
-    public default GraphTraversal<S, E> to(final Traversal<?, Object> toVertex) {
+    public default GraphTraversal<S, E> to(final Traversal<?, ?> toVertex) {
         final Step<?,?> prev = this.asAdmin().getEndStep();
         if (!(prev instanceof FromToModulating))
             throw new IllegalArgumentException(String.format(
@@ -1703,7 +1702,7 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
      * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#addedge-step" target="_blank">Reference Documentation - From Step</a>
      * @since 3.1.0-incubating
      */
-    public default GraphTraversal<S, E> from(final Traversal<?, Object> fromVertex) {
+    public default GraphTraversal<S, E> from(final Traversal<?, ?> fromVertex) {
         final Step<?,?> prev = this.asAdmin().getEndStep();
         if (!(prev instanceof FromToModulating))
             throw new IllegalArgumentException(String.format(
@@ -1723,13 +1722,7 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
      * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#addedge-step" target="_blank">Reference Documentation - From Step</a>
      * @since 3.3.0
      */
-    public default GraphTraversal<S, E> to(final Object toVertex) {
-        if (toVertex instanceof String) {
-            return this.to((String) toVertex);
-        } else if (toVertex instanceof Traversal) {
-            this.to((Traversal<?, Object>)toVertex);
-            return this;
-        }
+     public default GraphTraversal<S, E> to(final Vertex toVertex) {
         final Step<?,?> prev = this.asAdmin().getEndStep();
         if (!(prev instanceof FromToModulating))
             throw new IllegalArgumentException(String.format(
@@ -1739,34 +1732,6 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
         ((FromToModulating) prev).addTo(toVertex instanceof GValue ?
                 new GValueConstantTraversal<>((GValue<Object>) toVertex) :
                 __.constant(toVertex).asAdmin());
-        return this;
-    }
-
-    /**
-     * When used as a modifier to {@link #addE(String)} this method specifies the traversal to use for selecting the
-     * outgoing vertex of the newly added {@link Edge}.
-     *
-     * @param fromVertex the vertex for selecting the outgoing vertex
-     * @return the traversal with the modified {@link AddEdgeStepContract}
-     * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#addedge-step" target="_blank">Reference Documentation - From Step</a>
-     * @since 3.3.0
-     */
-    public default GraphTraversal<S, E> from(final Object fromVertex) {
-        if (fromVertex instanceof String) {
-            return this.from((String) fromVertex);
-        } else if (fromVertex instanceof Traversal) {
-            this.from((Traversal<?, Object>)fromVertex);
-            return this;
-        }
-        final Step<?,?> prev = this.asAdmin().getEndStep();
-        if (!(prev instanceof FromToModulating))
-            throw new IllegalArgumentException(String.format(
-                    "The from() step cannot follow %s", prev.getClass().getSimpleName()));
-
-        this.asAdmin().getBytecode().addStep(Symbols.from, fromVertex);
-        ((FromToModulating) prev).addFrom(fromVertex instanceof GValue ?
-                new GValueConstantTraversal<>((GValue<Object>) fromVertex) :
-                __.constant(fromVertex).asAdmin());
         return this;
     }
 
@@ -3545,32 +3510,16 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
     }
 
     /**
-     * Eagerly collects objects up to this step into a side-effect. Same as calling {@link #aggregate(Scope, String)}
-     * with a {@link Scope#global}.
+     * Eagerly collects objects up to this step into a side-effect.
      *
      * @param sideEffectKey the name of the side-effect key that will hold the aggregated objects
-     * @return the traversal with an appended {@link AggregateGlobalStep}
+     * @return the traversal with an appended {@link AggregateStep}
      * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#aggregate-step" target="_blank">Reference Documentation - Aggregate Step</a>
      * @since 3.0.0-incubating
      */
     public default GraphTraversal<S, E> aggregate(final String sideEffectKey) {
         this.asAdmin().getBytecode().addStep(Symbols.aggregate, sideEffectKey);
-        return this.asAdmin().addStep(new AggregateGlobalStep<>(this.asAdmin(), sideEffectKey));
-    }
-
-    /**
-     * Collects objects in a list using the {@link Scope} argument to determine whether it should be lazy
-     * {@link Scope#local} or eager ({@link Scope#global} while gathering those objects.
-     *
-     * @param sideEffectKey the name of the side-effect key that will hold the aggregated objects
-     * @return the traversal with an appended {@link AggregateGlobalStep}
-     * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#aggregate-step" target="_blank">Reference Documentation - Aggregate Step</a>
-     * @since 3.4.3
-     */
-    public default GraphTraversal<S, E> aggregate(final Scope scope, final String sideEffectKey) {
-        this.asAdmin().getBytecode().addStep(Symbols.aggregate, scope, sideEffectKey);
-        return this.asAdmin().addStep(scope == Scope.global ?
-                new AggregateGlobalStep<>(this.asAdmin(), sideEffectKey) : new AggregateLocalStep<>(this.asAdmin(), sideEffectKey));
+        return this.asAdmin().addStep(new AggregateStep<>(this.asAdmin(), sideEffectKey));
     }
 
     /**
@@ -3652,21 +3601,6 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
     public default <V, U> GraphTraversal<S, E> sack(final BiFunction<V, U, V> sackOperator) {
         this.asAdmin().getBytecode().addStep(Symbols.sack, sackOperator);
         return this.asAdmin().addStep(new SackValueStep<>(this.asAdmin(), sackOperator));
-    }
-
-    /**
-     * Lazily aggregates objects in the stream into a side-effect collection.
-     *
-     * @param sideEffectKey the name of the side-effect key that will hold the aggregate
-     * @return the traversal with an appended {@link AggregateLocalStep}
-     * @see <a href="http://tinkerpop.apache.org/docs/${project.version}/reference/#store-step" target="_blank">Reference Documentation - Store Step</a>
-     * @since 3.0.0-incubating
-     * @deprecated As of release 3.4.3, replaced by {@link #aggregate(Scope, String)} using {@link Scope#local}.
-     */
-    @Deprecated
-    public default GraphTraversal<S, E> store(final String sideEffectKey) {
-        this.asAdmin().getBytecode().addStep(Symbols.store, sideEffectKey);
-        return this.asAdmin().addStep(new AggregateLocalStep<>(this.asAdmin(), sideEffectKey));
     }
 
     /**
@@ -4882,8 +4816,6 @@ public interface GraphTraversal<S, E> extends Traversal<S, E> {
         /**
          * @deprecated As of release 3.4.3, replaced by {@link Symbols#aggregate} with a {@link Scope#local}.
          */
-        @Deprecated
-        public static final String store = "store";
         public static final String aggregate = "aggregate";
         public static final String fail = "fail";
         public static final String subgraph = "subgraph";

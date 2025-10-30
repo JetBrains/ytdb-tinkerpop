@@ -26,18 +26,22 @@ image::https://raw.githubusercontent.com/apache/tinkerpop/master/docs/static/ima
 This release also includes changes from <<release-3-7-XXX, 3.7.XXX>>.
 
 * Added a Gremln MCP server.
-* Added the Air Routes dataset to the set of available samples packaged with distributions.
+* Added the Air Routes 1.0 dataset to the set of available samples packaged with distributions.
 * Added a minimal distribution for `tinkergraph-gremlin` using the `min` classifier that doesn't include the sample datasets.
+* Removed `AggregateLocalStep` and `aggregate(Scope, String)`, and renamed `AggregateGlobalStep` to `AggregateStep`.
+* Removed `store()` in favor of using `local(aggregate())`.
 * Removed Vertex/ReferenceVertex from grammar. Use vertex id in traversals now instead.
-* Removed `has(key, traversal)` option for `has()` step.
+* Removed `has(key, traversal)` and `has(T, traversal)` options for `has()` step.
 * Fixed bug where `InlineFilterStrategy` could add an empty `has()`.
 * Normalized python and javascript `Element.properties` to lists.
 * Renamed `none()` step to `discard()`.
 * Repurposed `none()` step as a list filtering step with the signature `none(P)`.
 * Modified mathematical operators to prevent overflows in steps such as `sum()` and 'sack()' to prefer promotion to the next highest number type.
+* Modified `local()` to be "object-local" rather than "traverser-local".
 * Added `DateTime` ontop of the existing 'datetime' grammar.
 * Added `UUID()` and `UUID(value)` to grammar.
 * Deprecated the `UnifiedChannelizer`.
+* Fixed bug that caused incorrect results when `tail()` used inside `repeat()`.
 * Modified `TraversalStrategy` construction in Javascript where configurations are now supplied as a `Map` of options.
 * Fixed bug in GraphSON v2 and v3 where full round trip of `TraversalStrategy` implementations was failing.
 * Added missing strategies to the `TraversalStrategies` global cache as well as `CoreImports` in `gremlin-groovy`.
@@ -78,7 +82,7 @@ This release also includes changes from <<release-3-7-XXX, 3.7.XXX>>.
 * Updated `ElementIdStrategy.getConfiguration()` to help with serialization.
 * Fixed issue in `gremlin-go` where `Next()` didn't return the error from the server.
 * Changed type for `ReservedKeysVerificationStrategy.keys` in .NET to take a `Set<string>` rather than `List<string>`.
-* Changed `StandardVerificationStrategy` to prevent the use of `SupplyingBarriers` inside `repeat()`.
+* Changed `StandardVerificationStrategy` to prevent the use of `SupplyingBarriers` and `inject()` inside `repeat()`.
 * Fixed bug in `group()` value traversal of the second `by()` where a `CollectingBarrierStep` could produce an unexpected filtering effect when `ReducingBarrierStep` or `SupplyingBarrierStep` instances were not taken into account.
 * Changed `DetachedFactory` to special case the handling of `ComputerAdjacentVertex` which doesn't carry properties but still needs to be detachable for OLAP cases.
 * Deprecated `ProfilingAware.prepareForProfiling` method preferring to simply `resetBarrierFromValueTraversal` from the `Grouping` interface after strategy application.
@@ -96,11 +100,13 @@ This release also includes changes from <<release-3-7-XXX, 3.7.XXX>>.
 * Removed `P.getOriginalValue()` in favor of `P.getValue()`.
 * Simplified comparability semantics from ternary boolean logic to binary logic.
 * Introduced `NotP` class for negation of `P`.
+* Add barriers to `group(String)`, `groupCount(String)`, `tree(String)` and `subgraph(String)` steps.
 * Increase minimum Java version from 1.8 to 11 for building and running.
 * Moved all lambda oriented Gremlin tests to `LambdaStepTest` in the Java test suite.
 * Removed the `@RemoteOnly` testing tag in Gherkin as lambda tests have all been moved to the Java test suite.
 * Updated gremlin-javascript to use GraphBinary as default instead of GraphSONv3
 * Added the `asNumber()` step to perform number conversion.
+* Changed `repeat()` to make `repeatTraversal` global rather than a mix of local and global.
 * Renamed many types in the grammar for consistent use of terms "Literal", "Argument", and "Varargs".
 * Changed `gremlin-net` so that System.Text.Json is only listed as an explicit dependency when it is not available from the framework.
 * Fixed translation of numeric literals for Go losing type definitions.
@@ -133,6 +139,7 @@ image::https://raw.githubusercontent.com/apache/tinkerpop/master/docs/static/ima
 * Added getter for `parameterItems` and `valueTraversal` on `DifferenceStep`.
 * Added properties to `Element` objects found in a `Path` for GraphSON v2 and v3 and GraphBinary.
 * Fixed edge properties for GraphBinary which were not deserializing properly.
+* Deprecated `has(key, traversal)` and `has(T, traversal)` options for `has()` step.
 * Improved GLV examples reliability and documentation with step-by-step instructions.
 * Added root-level GLV examples in `glv-examples/` directory that use published driver versions for easy out-of-the-box usage, separate from module-level examples that use local development code.
 * Bump netty to 4.1.125.Final
