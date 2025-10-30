@@ -190,8 +190,8 @@ public abstract class AbstractOpProcessor implements OpProcessor {
                     Frame frame;
                     try {
                         frame = makeFrame(context, msg, serializer, useBinary, aggregate, code,
-                                generateResultMetaData(context, msg, code, itty, settings),
-                                generateStatusAttributes(nettyContext, msg, code, itty, settings));
+                            generateResultMetaData(context, msg, code, itty, settings),
+                            generateStatusAttributes(nettyContext, msg, code, itty, settings));
                     } catch (Exception ex) {
                         // exception is handled in makeFrame() - serialization error gets written back to driver
                         // at that point
@@ -334,9 +334,9 @@ public abstract class AbstractOpProcessor implements OpProcessor {
     }
 
     protected static Frame makeFrame(final Context ctx, final RequestMessage msg,
-                                     final MessageSerializer<?> serializer, final boolean useBinary, final List<Object> aggregate,
-                                     final ResponseStatusCode code, final Map<String, Object> responseMetaData,
-                                     final Map<String, Object> statusAttributes) throws Exception {
+        final MessageSerializer<?> serializer, final boolean useBinary, final List<Object> aggregate,
+        final ResponseStatusCode code, final Map<String, Object> responseMetaData,
+        final Map<String, Object> statusAttributes) throws Exception {
         try {
             final ChannelHandlerContext nettyContext = ctx.getChannelHandlerContext();
 

@@ -281,10 +281,14 @@ class GraphSONSerializersV3 {
                 throws IOException, JsonGenerationException {
             jsonGenerator.writeStartObject();
 
+            // prior to 3.7.5, the code was such that:
             // paths shouldn't serialize with properties if the path contains graph elements
-            final Path p = DetachedFactory.detach(path, false);
-            jsonGenerator.writeObjectField(GraphSONTokens.LABELS, p.labels());
-            jsonGenerator.writeObjectField(GraphSONTokens.OBJECTS, p.objects());
+            //
+            // however, there was the idea that v3 untyped should essentially match v1 which does include the
+            // properties. as of 3.7.5, we remove detachment to references and allow users to control the inclusion
+            // or exclusion of properties with the materializeProperties option.
+            jsonGenerator.writeObjectField(GraphSONTokens.LABELS, path.labels());
+            jsonGenerator.writeObjectField(GraphSONTokens.OBJECTS, path.objects());
 
             jsonGenerator.writeEndObject();
         }
@@ -318,14 +322,14 @@ class GraphSONSerializersV3 {
         @Override
         public void serialize(final TraversalExplanation traversalExplanation, final JsonGenerator jsonGenerator,
                               final SerializerProvider serializerProvider) throws IOException {
-            final Map<String, Object> m = new HashMap<>();
+            final Map<String, Object> m = new LinkedHashMap<>();
             m.put(GraphSONTokens.ORIGINAL, getStepsAsList(traversalExplanation.getOriginalTraversal()));
 
             final List<Pair<TraversalStrategy, Traversal.Admin<?, ?>>> strategyTraversals = traversalExplanation.getStrategyTraversals();
 
             final List<Map<String, Object>> intermediates = new ArrayList<>();
             for (final Pair<TraversalStrategy, Traversal.Admin<?, ?>> pair : strategyTraversals) {
-                final Map<String, Object> intermediate = new HashMap<>();
+                final Map<String, Object> intermediate = new LinkedHashMap<>();
                 intermediate.put(GraphSONTokens.STRATEGY, pair.getValue0().toString());
                 intermediate.put(GraphSONTokens.CATEGORY, pair.getValue0().getTraversalCategory().getSimpleName());
                 intermediate.put(GraphSONTokens.TRAVERSAL, getStepsAsList(pair.getValue1()));

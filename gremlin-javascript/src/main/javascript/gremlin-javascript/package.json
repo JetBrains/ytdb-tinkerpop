@@ -1,6 +1,6 @@
 {
   "name": "gremlin",
-  "version": "3.7.4-YTDB-alpha1",
+  "version": "3.7.5-YTDB-alpha1",
   "description": "JavaScript Gremlin Language Variant",
   "author": "Apache TinkerPop team",
   "keywords": [
@@ -59,6 +59,6 @@
     "lint": "eslint --ext .js ."
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

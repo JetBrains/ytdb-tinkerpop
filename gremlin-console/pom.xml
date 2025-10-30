@@ -21,12 +21,12 @@ limitations under the License.
     <parent>
         <artifactId>tinkerpop</artifactId>
         <groupId>org.apache.tinkerpop</groupId>
-        <version>3.7.4-YTDB-SNAPSHOT</version>
+        <version>3.7.5-YTDB-SNAPSHOT</version>
     </parent>
     <artifactId>gremlin-console</artifactId>
     <name>Apache TinkerPop :: Gremlin Console</name>
     <properties>
-        <docker.platforms>linux/amd64,linux/arm64/v8</docker.platforms>
+        <docker.platforms>linux/amd64,linux/arm64</docker.platforms>
     </properties>
     <dependencies>
         <dependency>

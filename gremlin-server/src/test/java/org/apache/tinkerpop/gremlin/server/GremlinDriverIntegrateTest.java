@@ -23,6 +23,11 @@ import ch.qos.logback.classic.Logger;
 import nl.altindag.log.LogCaptor;
 import org.apache.tinkerpop.gremlin.driver.Channelizer;
 import org.apache.tinkerpop.gremlin.server.channel.HttpChannelizer;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.io.Mapper;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV2;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV3;
 import org.apache.tinkerpop.gremlin.util.ExceptionHelper;
 import org.apache.tinkerpop.gremlin.TestHelper;
 import org.apache.tinkerpop.gremlin.driver.Client;
@@ -39,6 +44,8 @@ import org.apache.tinkerpop.gremlin.util.message.RequestMessage;
 import org.apache.tinkerpop.gremlin.util.message.ResponseStatusCode;
 import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection;
 import org.apache.tinkerpop.gremlin.util.ser.GraphBinaryMessageSerializerV1;
+import org.apache.tinkerpop.gremlin.util.ser.GraphSONMessageSerializerV2;
+import org.apache.tinkerpop.gremlin.util.ser.GraphSONMessageSerializerV3;
 import org.apache.tinkerpop.gremlin.util.ser.Serializers;
 import org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin;
 import org.apache.tinkerpop.gremlin.process.traversal.Bytecode;
@@ -207,6 +214,46 @@ public class GremlinDriverIntegrateTest extends AbstractGremlinServerIntegration
         }
 
         return settings;
+    }
+
+    @Test
+    public void shouldSubgraphWithGraphSONV3Serialization() throws Exception {
+        // validating subgraph() serialization here b/c we don't have feature tests for it yet in gherkin
+        final GraphSONMapper.Builder builder = GraphSONMapper.build().addRegistry(TinkerIoRegistryV3.instance());
+        final GraphSONMessageSerializerV3 serializer = new GraphSONMessageSerializerV3(builder);
+        final Cluster cluster = TestClientFactory.build().serializer(serializer).create();
+        final Client client = cluster.connect();
+
+        try {
+            final List<Result> r = client.submit("TinkerFactory.createModern().traversal().E().hasLabel('knows').subgraph('x').cap('x')").all().join();
+            assertEquals(1, r.size());
+
+            final Graph graph = r.get(0).get(Graph.class);
+            final GraphTraversalSource g = traversal().withEmbedded(graph);
+            assertEquals(2, g.E().count().next().longValue());
+            assertEquals(3, g.V().count().next().longValue());
+        } finally {
+            cluster.close();
+        }
+    }
+
+    @Test
+    public void shouldSubgraphWithGraphBinaryV1Serialization() throws Exception {
+        // validating subgraph() serialization here b/c we don't have feature tests for it yet in gherkin
+        final Cluster cluster = TestClientFactory.build().serializer(Serializers.GRAPHBINARY_V1).create();
+        final Client client = cluster.connect();
+
+        try {
+            final List<Result> r = client.submit("TinkerFactory.createModern().traversal().E().hasLabel('knows').subgraph('x').cap('x')").all().join();
+            assertEquals(1, r.size());
+
+            final Graph graph = r.get(0).get(Graph.class);
+            final GraphTraversalSource g = traversal().withEmbedded(graph);
+            assertEquals(2, g.E().count().next().longValue());
+            assertEquals(3, g.V().count().next().longValue());
+        } finally {
+            cluster.close();
+        }
     }
 
     @Test
@@ -840,6 +887,9 @@ public class GremlinDriverIntegrateTest extends AbstractGremlinServerIntegration
 
             stopServer();
 
+            // the client used to be quiet about an unavailable host and i'm not sure why we liked the description
+            // that follows:
+            //
             // We create a new client here which will fail to initialize but the original client still has
             // host marked as connected. Since the second client failed during initialization, it has no way to
             // test if a host is indeed unreachable because it doesn't have any established connections. It will not add
@@ -849,7 +899,18 @@ public class GremlinDriverIntegrateTest extends AbstractGremlinServerIntegration
             // keepAlive message or the next request, whichever is earlier. In this case, we will simulate the second
             // scenario by sending a new request on first client. The request would fail (since server is down) and
             // client should mark the host unavailable.
-            cluster.connect().init();
+            // ...
+            // at 3.7.4 we don't let cluster level host availability determine for the client if
+            // NoHostAvailableException should be thrown. we rely on the ground truth of the actually initialization of
+            // the ConnectionPool and if at least one Host managed to create one. as such, it's more likely now that
+            // a NoHostAvailableException be thrown in this scenario, rather than it silently succeeding because
+            // client1 thinks it's still good.
+            try {
+                cluster.connect().init();
+                fail("Should have thrown NHA");
+            } catch (NoHostAvailableException ex) {
+
+            }
 
             try {
                 client1.submit("1+1").all().join();
