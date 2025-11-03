@@ -20,7 +20,7 @@ limitations under the License.
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>tinkerpop</artifactId>
-        <groupId>org.apache.tinkerpop</groupId>
+        <groupId>io.youtrackdb</groupId>
         <version>3.7.5-YTDB-SNAPSHOT</version>
     </parent>
     <artifactId>gremlin-console</artifactId>
@@ -30,12 +30,12 @@ limitations under the License.
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
+            <groupId>io.youtrackdb</groupId>
             <artifactId>gremlin-groovy</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
+            <groupId>io.youtrackdb</groupId>
             <artifactId>tinkergraph-gremlin</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -49,7 +49,7 @@ limitations under the License.
             <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
+            <groupId>io.youtrackdb</groupId>
             <artifactId>gremlin-driver</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -75,13 +75,13 @@ limitations under the License.
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
+            <groupId>io.youtrackdb</groupId>
             <artifactId>gremlin-server</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
+            <groupId>io.youtrackdb</groupId>
             <artifactId>gremlin-test</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

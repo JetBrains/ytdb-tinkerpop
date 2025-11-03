@@ -20,7 +20,7 @@ limitations under the License.
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>tinkerpop</artifactId>
-        <groupId>org.apache.tinkerpop</groupId>
+        <groupId>io.youtrackdb</groupId>
         <version>3.7.5-YTDB-SNAPSHOT</version>
     </parent>
 
@@ -29,7 +29,7 @@ limitations under the License.
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
+            <groupId>io.youtrackdb</groupId>
             <artifactId>gremlin-core</artifactId>
             <version>${project.version}</version>
         </dependency>

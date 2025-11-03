@@ -23,7 +23,7 @@ limitations under the License.
         <artifactId>apache</artifactId>
         <version>27</version>
     </parent>
-    <groupId>org.apache.tinkerpop</groupId>
+    <groupId>io.youtrackdb</groupId>
     <artifactId>tinkerpop</artifactId>
     <version>3.7.5-YTDB-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -564,6 +564,16 @@ limitations under the License.
                 <artifactId>maven-site-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.9.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
         </plugins>
@@ -1585,7 +1595,7 @@ limitations under the License.
                                             <version>${java.tuples.version}</version>
                                         </additionalDependency>
                                         <additionalDependency>
-                                            <groupId>org.apache.tinkerpop</groupId>
+                                            <groupId>io.youtrackdb</groupId>
                                             <artifactId>gremlin-shaded</artifactId>
                                             <version>${project.version}</version>
                                         </additionalDependency>
@@ -1807,7 +1817,7 @@ limitations under the License.
                                             <version>${java.tuples.version}</version>
                                         </additionalDependency>
                                         <additionalDependency>
-                                            <groupId>org.apache.tinkerpop</groupId>
+                                            <groupId>io.youtrackdb</groupId>
                                             <artifactId>gremlin-shaded</artifactId>
                                             <version>${project.version}</version>
                                         </additionalDependency>
