@@ -20,7 +20,7 @@ limitations under the License.
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.youtrackdb</groupId>
     <artifactId>tinkerpop</artifactId>
-    <version>3.8.0-YTDB-SNAPSHOT</version>
+    <version>3.8.0-YTDB</version>
     <packaging>pom</packaging>
     <name>Apache TinkerPop</name>
     <description>A Graph Computing Framework</description>
@@ -221,6 +221,7 @@ limitations under the License.
 
         <runtime.npm.version>10.8.2</runtime.npm.version>
         <runtime.node.version>v20.19.4</runtime.node.version>
+        <node.test.version>20</node.test.version>
     </properties>
     <build>
         <directory>${basedir}/target</directory>

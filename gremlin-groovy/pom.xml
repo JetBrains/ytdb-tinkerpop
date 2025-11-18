@@ -21,7 +21,7 @@ limitations under the License.
     <parent>
         <groupId>io.youtrackdb</groupId>
         <artifactId>tinkerpop</artifactId>
-        <version>3.8.0-YTDB-SNAPSHOT</version>
+        <version>3.8.0-YTDB</version>
     </parent>
     <artifactId>gremlin-groovy</artifactId>
     <name>Apache TinkerPop :: Gremlin Groovy</name>

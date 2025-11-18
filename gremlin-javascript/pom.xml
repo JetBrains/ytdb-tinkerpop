@@ -21,7 +21,7 @@ limitations under the License.
     <parent>
         <groupId>io.youtrackdb</groupId>
         <artifactId>tinkerpop</artifactId>
-        <version>3.8.0-YTDB-SNAPSHOT</version>
+        <version>3.8.0-YTDB</version>
     </parent>
     <artifactId>gremlin-javascript</artifactId>
     <name>Apache TinkerPop :: Gremlin Javascript</name>
@@ -260,6 +260,7 @@ limitations under the License.
                                         <ABS_PROJECT_HOME>${project.basedir}/../</ABS_PROJECT_HOME>
                                         <!-- setting this env variable is needed to be cross-platform compatible -->
                                         <HOME>${user.home}</HOME>
+                                        <NODE_VERSION>${node.test.version}</NODE_VERSION>
                                     </environmentVariables>
                                     <executable>docker</executable>
                                     <arguments>

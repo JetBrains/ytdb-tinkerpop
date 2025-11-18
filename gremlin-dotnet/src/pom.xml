@@ -21,7 +21,7 @@ limitations under the License.
     <parent>
         <groupId>io.youtrackdb</groupId>
         <artifactId>gremlin-dotnet</artifactId>
-        <version>3.8.0-YTDB-SNAPSHOT</version>
+        <version>3.8.0-YTDB</version>
     </parent>
     <artifactId>gremlin-dotnet-source</artifactId>
     <name>Apache TinkerPop :: Gremlin.Net - Source</name>

@@ -83,6 +83,25 @@ To install the Gremlin-Go as a dependency for your project, run the following in
 go get github.com/apache/tinkerpop/gremlin-go/v3[optionally append @<version>, such as @v3.5.3]
 ----
 
+The following table outlines recommended runtime versions by the release in which their support began:
+
+[cols="1,1",options="header"]
+|===
+|Version |Recommended Go Version
+|3.4.0 |N/A
+|3.4.13 |N/A
+|3.5.0 |N/A
+|3.5.4 |≥1.17
+|3.5.8 |≥1.20
+|3.6.0 |≥1.17
+|3.6.7 |≥1.21
+|3.6.8 |≥1.22
+|3.7.0 |≥1.20
+|3.7.2 |≥1.21
+|3.7.3 |≥1.22
+|3.8.0 |≥1.25
+|===
+
 [[gremlin-go-connecting]]
 === Connecting
 
@@ -655,6 +674,18 @@ tinkergraph-gremlin which are not shaded.
    </exclusions>
 </dependency>
 ----
+
+The following table outlines recommended runtime versions by the release in which their support began:
+
+[cols="1,2",options="header"]
+|===
+|Version |Supported Java Versions
+|3.4.0 | Java 8
+|3.5.0 | Java 8, 11
+|3.6.0 | Java 8, 11
+|3.7.0 | Java 8, 11, 17
+|3.8.0 | Java 11, 17
+|===
 
 [[gremlin-java-connecting]]
 === Connecting
@@ -1407,12 +1438,28 @@ g.inject(java.awt.Color.red, "hi", 123).is(P.typeOf(java.awt.Color))
 == Gremlin-JavaScript
 
 image:gremlin-js.png[width=130,float=right] Apache TinkerPop's Gremlin-JavaScript implements Gremlin within the
-JavaScript language. It targets Node.js runtime and can be used on different operating systems on any Node.js 6 or
+JavaScript language. It targets Node.js runtime and can be used on different operating systems on any Node.js 20 or
 above. Since the JavaScript naming conventions are very similar to that of Java, it should be very easy to switch
 between Gremlin-Java and Gremlin-JavaScript.
 
 [source,bash]
 npm install gremlin
+
+The following table outlines recommended runtime versions by the release in which their support began:
+
+[cols="1,1,1",options="header"]
+|===
+|Version |Min Node.js |npm Version
+|3.4.0 |≥6 |N/A
+|3.5.0 |≥10 |6.14.16
+|3.5.7 |≥16 |8.19.4
+|3.6.0 |≥10 |8.1.2
+|3.6.5 |≥16 |8.19.4
+|3.6.7 |≥18 |9.6.7
+|3.7.0 |≥18 |9.6.7
+|3.7.4 |≥20 |10.8.2
+|3.8.0 |≥20 |10.8.2
+|===
 
 [[gremlin-javascript-connecting]]
 === Connecting
@@ -1908,6 +1955,19 @@ to comply with .NET conventions.
 [source,powershell]
 nuget install Gremlin.Net
 
+The following table outlines recommended runtime versions by the release in which their support began:
+
+[cols="1,2",options="header"]
+|===
+|Version |Target Frameworks
+|3.4.0 |.NET Standard 1.3; .NET Standard 2.0
+|3.5.0 |.NET Standard 2.0
+|3.5.3 |.NET Standard 2.0; .NET 6.0
+|3.6.0 |.NET Standard 2.0; .NET 6.0
+|3.7.0 |.NET Standard 2.0; .NET6.0
+|3.8.0 |.NET Standard 2.0; .NET6.0
+|===
+
 [[gremlin-dotnet-connecting]]
 === Connecting
 
@@ -2332,6 +2392,20 @@ To install Gremlin-Python, use Python's link:https://en.wikipedia.org/wiki/Pip_(
 pip install gremlinpython
 pip install gremlinpython[kerberos]     # Optional, not available on Microsoft Windows
 ----
+
+The following table outlines recommended runtime versions by the release in which their support began:
+
+[cols="1,1,1",options="header"]
+|===
+|Version |Min Python |Key Dependencies
+|3.4.0 |2.7 |tornado
+|3.5.0 |≥3.0 |aiohttp
+|3.6.0 |≥3.8 |aiohttp
+|3.6.8 |≥3.9 |aiohttp
+|3.7.0 |≥3.8 |aiohttp
+|3.7.3 |≥3.9 |aiohttp
+|3.8.0 |≥3.10 |aiohttp
+|===
 
 [[gremlin-python-connecting]]
 === Connecting
