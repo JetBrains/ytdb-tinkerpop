@@ -325,11 +325,7 @@ public class TraversalOpProcessor extends AbstractOpProcessor {
         final GraphManager graphManager = ctx.getGraphManager();
         final RequestMessage msg = ctx.getRequestMessage();
 
-        AuthenticatedUser user = ctx.getChannelHandlerContext().channel().attr(StateKey.AUTHENTICATED_USER).get();
-        if (null == user) {    // This is expected when using the AllowAllAuthenticator
-            user = AuthenticatedUser.ANONYMOUS_USER;
-        }
-        graphManager.beforeQueryStart(msg, user);
+        graphManager.beforeQueryStart(msg);
         if (graph.features().graph().supportsTransactions() && graph.tx().isOpen()) graph.tx().rollback();
     }
 

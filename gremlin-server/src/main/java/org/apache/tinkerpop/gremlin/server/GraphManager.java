@@ -126,7 +126,7 @@ public interface GraphManager {
             return graph.features().graph().supportsTransactions() && graph.tx().isOpen();
         });
     }
- 
+
     /**
      * This method will be called before a script or query is processed by the
      * gremlin-server.
@@ -138,26 +138,13 @@ public interface GraphManager {
     }
 
     /**
-     * This method will be called before a script or query is processed by the
-     * gremlin-server.
-     * <p>
-     * This method delegates call to the {@link #beforeQueryStart(RequestMessage)} by default, this functionality
-     * should be preserved by overriding methods if call of the former method is still needed.
-     *
-     * @param msg  the {@link RequestMessage} received by the gremlin-server.
-     * @param user User authenticated in channel processing request
-     */
-    default void beforeQueryStart(final RequestMessage msg, AuthenticatedUser user) {
-        beforeQueryStart(msg);
-    }
-
-    /**
      * This method will be called if a script or query is processed by the
      * gremlin-server throws an error.
      *
      * @param msg   the {@link RequestMessage} received by the gremlin-server.
      * @param error the exception encountered during processing from the gremlin-server.
-     */    default void onQueryError(final RequestMessage msg, final Throwable error) {
+     */
+    default void onQueryError(final RequestMessage msg, final Throwable error) {
 
     }
 

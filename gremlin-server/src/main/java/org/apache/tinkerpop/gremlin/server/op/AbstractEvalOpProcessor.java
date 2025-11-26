@@ -241,12 +241,7 @@ public abstract class AbstractEvalOpProcessor extends AbstractOpProcessor {
                   graphManager.onQueryError(msg, t);
                 })
                 .beforeEval(b -> {
-                    AuthenticatedUser user = ctx.getChannelHandlerContext().channel().attr(StateKey.AUTHENTICATED_USER).get();
-                    if (null == user) {
-                        // This is expected when using the AllowAllAuthenticator
-                        user = AuthenticatedUser.ANONYMOUS_USER;
-                    }
-                    graphManager.beforeQueryStart(msg, user);
+                    graphManager.beforeQueryStart(msg);
                     try {
                         b.putAll(bindingsSupplier.get());
                     } catch (OpProcessorException ope) {
