@@ -5,7 +5,7 @@
     <parent>
         <artifactId>gremlin-tools</artifactId>
         <groupId>io.youtrackdb</groupId>
-        <version>3.8.0-YTDB</version>
+        <version>3.8.1-YTDB-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
