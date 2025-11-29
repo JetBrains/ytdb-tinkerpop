@@ -474,7 +474,7 @@ public final class Cluster {
         return manager.factory;
     }
 
-    MessageSerializer<?> getSerializer() {
+    public MessageSerializer<?> getSerializer() {
         return manager.serializer;
     }
 
