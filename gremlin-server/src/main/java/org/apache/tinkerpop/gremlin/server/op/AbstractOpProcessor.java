@@ -112,8 +112,7 @@ public abstract class AbstractOpProcessor implements OpProcessor {
         int warnCounter = 0;
 
         // sessionless requests are always transaction managed, but in-session requests are configurable.
-        final boolean managedTransactionsForRequest = manageTransactions ?
-                true : (Boolean) msg.getArgs().getOrDefault(Tokens.ARGS_MANAGE_TRANSACTION, false);
+        final boolean managedTransactionsForRequest = shouldManageTransactionsForRequest(context);
 
         // we have an empty iterator - happens on stuff like: g.V().iterate()
         if (!itty.hasNext()) {
@@ -396,5 +395,10 @@ public abstract class AbstractOpProcessor implements OpProcessor {
         } else {
             graphManager.rollbackAll();
         }
+    }
+
+    protected boolean shouldManageTransactionsForRequest(final Context ctx) {
+        return manageTransactions ?
+                true : (Boolean) ctx.getRequestMessage().getArgs().getOrDefault(Tokens.ARGS_MANAGE_TRANSACTION, false);
     }
 }

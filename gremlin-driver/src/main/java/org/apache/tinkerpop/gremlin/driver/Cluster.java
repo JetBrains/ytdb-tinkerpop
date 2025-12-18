@@ -464,6 +464,13 @@ public final class Cluster {
     }
 
     /**
+     * Determines whether to reuse connections for transactions or create new ones.
+     */
+    public boolean isReuseConnectionsForSessions() {
+        return manager.reuseConnectionsForSessions;
+    }
+
+    /**
      * Gets a list of all the configured hosts.
      */
     public Collection<Host> allHosts() {
@@ -629,6 +636,7 @@ public final class Cluster {
         private long connectionSetupTimeoutMillis = Connection.CONNECTION_SETUP_TIMEOUT_MILLIS;
         private boolean enableUserAgentOnConnect = true;
         private boolean enableCompression = true;
+        private boolean reuseConnectionsForSessions = false;
 
         private Builder() {
             // empty to prevent direct instantiation
@@ -874,6 +882,14 @@ public final class Cluster {
          */
         public Builder maxWaitForConnection(final int maxWait) {
             this.maxWaitForConnection = maxWait;
+            return this;
+        }
+
+        /**
+         * If true, reuses the connections for transactions
+         */
+        public Builder reuseConnectionsForSessions(final boolean reuseConnectionsForSessions) {
+            this.reuseConnectionsForSessions = reuseConnectionsForSessions;
             return this;
         }
 
@@ -1125,6 +1141,7 @@ public final class Cluster {
         private final String path;
         private final boolean enableUserAgentOnConnect;
         private final boolean enableCompression;
+        private final boolean reuseConnectionsForSessions;
 
         private final AtomicReference<CompletableFuture<Void>> closeFuture = new AtomicReference<>();
 
@@ -1139,6 +1156,7 @@ public final class Cluster {
             this.interceptor = builder.interceptor;
             this.enableUserAgentOnConnect = builder.enableUserAgentOnConnect;
             this.enableCompression = builder.enableCompression;
+            this.reuseConnectionsForSessions = builder.reuseConnectionsForSessions;
 
             connectionPoolSettings = new Settings.ConnectionPoolSettings();
             connectionPoolSettings.maxInProcessPerConnection = builder.maxInProcessPerConnection;
